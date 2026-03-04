@@ -213,8 +213,10 @@ void Game::handleClick(int x, int y)
     if (!selected)
     {
         if (x == curPos.x && y == curPos.y)
+        {
             selected = true;
             pieceSelected = true;
+        }
         return;
     }
 
@@ -310,17 +312,14 @@ void Game::update()
 
 void Game::render()
 {
-    static sf::RenderWindow window(
-        sf::VideoMode(SIZE * CELL, SIZE * CELL),
-        "Chess Game"
-    );
-
     if (!gameOver)
         window.setTitle(redTurn ? "Red Turn" : "Blue Turn");
     else
         window.setTitle("Game Over");
 
     window.clear();
+
+
 
     if (gameOver)//这样处理，确保游戏结束后，不屏闪,（但还是状态转化更好）
     {
@@ -336,6 +335,9 @@ void Game::render()
         return;
     }
     else{
+
+        calculateHighlights();
+
         for (int i = 0; i < SIZE; i++)
         {
             for (int j = 0; j < SIZE; j++)
@@ -352,7 +354,7 @@ void Game::render()
 
 
 
-                calculateHighlights();
+
 
                 // 画高亮
                 for (auto& h : highlights)
