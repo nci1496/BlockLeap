@@ -51,12 +51,20 @@ void Game::performJump(PlayerSide side,int x2, int y2)
 
     Piece oppMain = board.getMainPiece(oppSide);
 
-
+    int eatenTotal_temp = 0;//吃子总计数
+    int eatenSelf_temp = 0;//吃自己棋子的计数
 
     while (cx != x2 || cy != y2)
     {
         if (board.grid[cx][cy] != EMPTY)
         {
+            eatenTotal_temp++;
+            if (board.isTraceOfSide(board.grid[cx][cy], side))
+            {
+                eatenSelf_temp++;
+                board.grid[cx][cy] = EMPTY;
+            }
+
             if (board.isMainOfSide(board.grid[cx][cy],oppSide))
             {
                 //原本用的if(board.grid[cx][cy] == oppMain)
@@ -81,6 +89,11 @@ void Game::performJump(PlayerSide side,int x2, int y2)
     sf::Vector2i newPos{ x2,y2 };
     board.setMainPos(side, newPos);
     board.grid[x2][y2] = board.getMainPiece(side);
+
+    
+    currentPlayer->jumpCount.eatenSelf+=eatenSelf_temp;
+    currentPlayer->jumpCount.eatenTotal += eatenTotal_temp;
+
 }
 
 void Game::handleClick(int x, int y)
@@ -114,6 +127,7 @@ void Game::handleClick(int x, int y)
             {
                 jumpMode = false;
                 selected = false;
+                currentPlayer->applyJumpResult();
                 switchTurn();
             }
         }
@@ -122,6 +136,7 @@ void Game::handleClick(int x, int y)
             // 点击非法位置 → 结束回合
             jumpMode = false;
             selected = false;
+            currentPlayer->applyJumpResult();
             switchTurn();
         }
 
@@ -143,6 +158,7 @@ void Game::handleClick(int x, int y)
         {
             jumpMode = false;
             selected = false;
+            currentPlayer->applyJumpResult();
             switchTurn();
         }
         updateHighlights();
@@ -159,6 +175,7 @@ void Game::handleClick(int x, int y)
         board.grid[x][y] = curPiece;
 
         selected = false;
+        currentPlayer->applyJumpResult();
         switchTurn();
         updateHighlights();
         return;
@@ -175,16 +192,16 @@ void Game::update()
 
     if (!Rule::hasAnyMove(board,currentPlayer->getSide(), pos))
     {
+        //窒息
         currentPlayer->damage(1);
         switchTurn();
     }
     if (redPlayer.getHP() == 0 || bluePlayer.getHP() == 0)
     {
         gameOver = true;
-        if (redPlayer.getHP() == 0)
-        {
-            winner = BLUE_SIDE;
-        }
+        winner = (redPlayer.getHP() == 0) ? BLUE_SIDE : RED_SIDE;
+        
+       
     }
 }
 

@@ -13,5 +13,6 @@ public:
     static bool hasAnyMove(const Board& board,PlayerSide side, sf::Vector2i pos);
 
     static std::vector<sf::Vector2i>generateMoves(const Board& board,PlayerSide side,bool jumpOnly);
+
 };
 

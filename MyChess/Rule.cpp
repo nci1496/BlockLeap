@@ -55,8 +55,11 @@ bool Rule::canJump(const Board& board, PlayerSide side, int x1, int y1, int x2, 
     Piece oppTrace = board.getTracePiece(oppSide);
 
     Piece mid = board.grid[mx][my];
-    //如果这个中间的棋子，是对方的主将，或者是对方的轨迹，就能跳
-    return (board.isMainOfSide(mid,oppSide) || board.isTraceOfSide(mid,oppSide));
+    ////如果这个中间的棋子，是对方的主将，或者是对方的轨迹，就能跳
+    //return (board.isMainOfSide(mid,oppSide) || board.isTraceOfSide(mid,oppSide));
+    //现在是如果这个中间的棋子，是对方的主将，或者是对方的轨迹，甚至是自己轨迹，都能跳
+    return (board.isMainOfSide(mid, oppSide) || board.isTraceOfSide(mid, oppSide)||board.isTraceOfSide(mid,side));
+
 }
 
 bool Rule::hasAnyJump(const Board& board, PlayerSide side,sf::Vector2i pos)
