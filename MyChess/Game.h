@@ -4,6 +4,8 @@
 
 #include"Board.h"
 #include"Renderer.h"
+#include"Player.h"
+#include"Types.h"
 
 enum GameState
 {
@@ -26,24 +28,31 @@ private:
 private:
 
     sf::RenderWindow window;
-    //角色状态
-    int redHP;
-    int blueHP;
+    //角色
+
+    Player redPlayer{ RED_SIDE };
+    Player bluePlayer{ BLUE_SIDE };
+
+    Player* currentPlayer;
+    Player* opponentPlayer;
+
     //流程
-    bool redTurn;
+    void switchTurn();
+    //bool redTurn;
     void update();
     void render();
     Renderer renderer;
     //跳跃
     bool jumpMode;
-    void performJump(sf::Vector2i& pos, int x2, int y2);
+    void performJump(PlayerSide side, int x2, int y2);
     //流程结束
     bool gameOver;
-    Piece winner;
-    Piece lastWinner;
+    PlayerSide winner;
+    PlayerSide lastWinner;
     //点击
     void handleClick(int x, int y);
     bool selected;
     std::vector<sf::Vector2i> highlights;
     void updateHighlights();
+
 };

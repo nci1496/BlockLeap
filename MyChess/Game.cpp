@@ -11,12 +11,17 @@ Game::Game() : window(sf::VideoMode(board.SIZE* board.CELL, board.SIZE* board.CE
         std::cout << "字体加载失败\n";
     }
 
-    redTurn = true;
     selected = false;
     jumpMode = false;
     gameOver = false;
-    redHP = 5;
-    blueHP = 5;
+    
+    currentPlayer = &redPlayer;
+    opponentPlayer = &bluePlayer;
+}
+
+void Game::switchTurn()
+{
+    std::swap(currentPlayer, opponentPlayer);
 }
 
 
@@ -28,33 +33,42 @@ void Game::updateHighlights()
         return;
     }
 
-    highlights = Rule::generateMoves(board, redTurn, jumpMode);
+    highlights = Rule::generateMoves(board, currentPlayer->getSide(), jumpMode);
 }
 
-void Game::performJump(sf::Vector2i& pos, int x2, int y2)
+void Game::performJump(PlayerSide side,int x2, int y2)
 {
-    int dx = x2 - pos.x;
-    int dy = y2 - pos.y;
+    PlayerSide oppSide = getOpponent(side);
+    sf::Vector2i curPos = board.getMainPos(side);
+    int dx = x2 - curPos.x;
+    int dy = y2 - curPos.y;
 
     if (dx != 0) dx /= abs(dx);
     if (dy != 0) dy /= abs(dy);
 
-    int cx = pos.x + dx;
-    int cy = pos.y + dy;
+    int cx = curPos.x + dx;
+    int cy = curPos.y + dy;
 
-    Piece oppMain = redTurn ? BLUE : RED;
+    Piece oppMain = board.getMainPiece(oppSide);
+
+
 
     while (cx != x2 || cy != y2)
     {
         if (board.grid[cx][cy] != EMPTY)
         {
-            if (board.grid[cx][cy] == oppMain)
+            if (board.isMainOfSide(board.grid[cx][cy],oppSide))
             {
-                gameOver = true;
-                winner = redTurn ? RED : BLUE;
+                //原本用的if(board.grid[cx][cy] == oppMain)
+                //如果要吃的棋，是对面的主将，对面扣两滴
+                opponentPlayer->damage(2);
+
+            }
+            if (board.isTraceOfSide(board.grid[cx][cy],oppSide)) {
+                //如果要吃的棋，是对面的Trace，那就吃，
+                board.grid[cx][cy] = EMPTY;
             }
 
-            board.grid[cx][cy] = EMPTY;
             break;
         }
 
@@ -62,19 +76,20 @@ void Game::performJump(sf::Vector2i& pos, int x2, int y2)
         cy += dy;
     }
 
-    board.grid[pos.x][pos.y] = redTurn ? RED_TRACE : BLUE_TRACE;
+    board.grid[curPos.x][curPos.y] = board.getTracePiece(side);
 
-    pos.x = x2;
-    pos.y = y2;
-
-    board.grid[pos.x][pos.y] = redTurn ? RED : BLUE;
+    sf::Vector2i newPos{ x2,y2 };
+    board.setMainPos(side, newPos);
+    board.grid[x2][y2] = board.getMainPiece(side);
 }
 
 void Game::handleClick(int x, int y)
 {
-    sf::Vector2i& curPos = redTurn ? board.redPos : board.bluePos;
-    Piece curPiece = redTurn ? RED : BLUE;
+    PlayerSide curSide=currentPlayer->getSide();//简化
+    const sf::Vector2i& curPos = board.getMainPos(curSide);
+    
 
+    Piece curPiece = board.getMainPiece(curSide);
     
     if (!selected)
     {
@@ -92,14 +107,14 @@ void Game::handleClick(int x, int y)
     // 连跳模式
     if (jumpMode)
     {
-        if (Rule::canJump(board,redTurn,curPos.x, curPos.y, x, y))
+        if (Rule::canJump(board, curSide,curPos.x, curPos.y, x, y))
         {
-            performJump(curPos, x, y);
-            if (!Rule::hasAnyJump(board, redTurn, curPos))
+            performJump(curSide, x, y);
+            if (!Rule::hasAnyJump(board, curSide, curPos))
             {
                 jumpMode = false;
                 selected = false;
-                redTurn = !redTurn;
+                switchTurn();
             }
         }
         else
@@ -107,7 +122,7 @@ void Game::handleClick(int x, int y)
             // 点击非法位置 → 结束回合
             jumpMode = false;
             selected = false;
-            redTurn = !redTurn;
+            switchTurn();
         }
 
         updateHighlights();
@@ -117,10 +132,10 @@ void Game::handleClick(int x, int y)
     // 普通模式
 
     // 选择吃
-    if (Rule::canJump(board,redTurn,curPos.x, curPos.y, x, y))
+    if (Rule::canJump(board,curSide,curPos.x, curPos.y, x, y))
     {
-        performJump(curPos, x, y);
-        if (Rule::hasAnyJump(board,redTurn,curPos))
+        performJump(curSide, x, y);
+        if (Rule::hasAnyJump(board,curSide,curPos))
         {
             jumpMode = true;
         }
@@ -128,7 +143,7 @@ void Game::handleClick(int x, int y)
         {
             jumpMode = false;
             selected = false;
-            redTurn = !redTurn;
+            switchTurn();
         }
         updateHighlights();
         return;
@@ -137,13 +152,14 @@ void Game::handleClick(int x, int y)
     // 选择移动
     if (Rule::isQueenMove(board,curPos.x, curPos.y, x, y))
     {
-        board.grid[curPos.x][curPos.y] = redTurn ? RED_TRACE : BLUE_TRACE;
-        curPos.x = x;
-        curPos.y = y;
+        board.grid[curPos.x][curPos.y] = board.getTracePiece(curSide);
+
+        sf::Vector2i newPos{ x,y };
+        board.setMainPos(curSide,newPos);
         board.grid[x][y] = curPiece;
 
         selected = false;
-        redTurn = !redTurn;
+        switchTurn();
         updateHighlights();
         return;
     }
@@ -154,12 +170,21 @@ void Game::handleClick(int x, int y)
 
 void Game::update()
 {
-    sf::Vector2i pos = redTurn ? board.redPos : board.bluePos;
+    sf::Vector2i pos = board.getMainPos(currentPlayer->getSide());
 
-    if (!Rule::hasAnyMove(board,redTurn,pos))
+
+    if (!Rule::hasAnyMove(board,currentPlayer->getSide(), pos))
+    {
+        currentPlayer->damage(1);
+        switchTurn();
+    }
+    if (redPlayer.getHP() == 0 || bluePlayer.getHP() == 0)
     {
         gameOver = true;
-        winner = redTurn ? BLUE : RED;
+        if (redPlayer.getHP() == 0)
+        {
+            winner = BLUE_SIDE;
+        }
     }
 }
 
@@ -167,13 +192,13 @@ void Game::render()
 {
     RenderState state;
     state.board = &board;
-    state.redTurn = redTurn;
+    state.redTurn = (currentPlayer->getSide()==RED_SIDE);
     state.gameOver = gameOver;
     state.winner = winner;
     state.selected = selected;
     state.highlights = &highlights;
-    state.redHP = redHP;
-    state.blueHP = blueHP;
+    state.redHP = redPlayer.getHP();
+    state.blueHP = bluePlayer.getHP();
     state.font = &font;
 
     renderer.draw(window, state);

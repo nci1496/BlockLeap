@@ -2,6 +2,7 @@
 #include <SFML/Graphics.hpp>
 #include<vector>
 #include"Board.h"
+#include"Types.h"
 
 struct RenderState
 {
@@ -9,7 +10,7 @@ struct RenderState
 
     bool redTurn;
     bool gameOver;
-    Piece winner;
+    PlayerSide winner;
 
     bool selected;
     const std::vector<sf::Vector2i>* highlights;

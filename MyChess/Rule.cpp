@@ -26,7 +26,7 @@ bool Rule::isQueenMove(const Board& board, int x1, int y1, int x2, int y2)
     return true;
 }
 
-bool Rule::canJump(const Board& board, bool redTurn, int x1, int y1, int x2, int y2)
+bool Rule::canJump(const Board& board, PlayerSide side, int x1, int y1, int x2, int y2)
 {
     if (!board.inside(x2, y2)) return false;
     if (board.grid[x2][y2] != EMPTY) return false;
@@ -49,13 +49,17 @@ bool Rule::canJump(const Board& board, bool redTurn, int x1, int y1, int x2, int
     int mx = x1 + dx / 2;
     int my = y1 + dy / 2;
 
-    Piece oppMain = redTurn ? BLUE : RED;
-    Piece oppTrace = redTurn ? BLUE_TRACE : RED_TRACE;
+    PlayerSide oppSide = getOpponent(side);
 
-    return (board.grid[mx][my] == oppMain || board.grid[mx][my] == oppTrace);
+    Piece oppMain = board.getMainPiece(oppSide);
+    Piece oppTrace = board.getTracePiece(oppSide);
+
+    Piece mid = board.grid[mx][my];
+    //如果这个中间的棋子，是对方的主将，或者是对方的轨迹，就能跳
+    return (board.isMainOfSide(mid,oppSide) || board.isTraceOfSide(mid,oppSide));
 }
 
-bool Rule::hasAnyJump(const Board& board,bool redTurn,sf::Vector2i pos)
+bool Rule::hasAnyJump(const Board& board, PlayerSide side,sf::Vector2i pos)
 {
     for (int dx = -1; dx <= 1; dx++)
     {
@@ -68,7 +72,7 @@ bool Rule::hasAnyJump(const Board& board,bool redTurn,sf::Vector2i pos)
 
             while (board.inside(nx, ny))
             {
-                if (Rule::canJump(board, redTurn, pos.x, pos.y, nx, ny))
+                if (Rule::canJump(board, side, pos.x, pos.y, nx, ny))
                     return true;
 
                 nx += dx;
@@ -79,7 +83,7 @@ bool Rule::hasAnyJump(const Board& board,bool redTurn,sf::Vector2i pos)
     return false;
 }
 
-bool Rule::hasAnyMove(const Board& board,bool redTurn,sf::Vector2i pos)
+bool Rule::hasAnyMove(const Board& board, PlayerSide side,sf::Vector2i pos)
 {
     for (int dx = -1; dx <= 1; dx++)
     {
@@ -95,7 +99,7 @@ bool Rule::hasAnyMove(const Board& board,bool redTurn,sf::Vector2i pos)
                 if (isQueenMove(board,pos.x, pos.y, nx, ny))
                     return true;
 
-                if (canJump(board,redTurn,pos.x, pos.y, nx, ny))
+                if (canJump(board,side,pos.x, pos.y, nx, ny))
                     return true;
 
                 nx += dx;
@@ -107,11 +111,12 @@ bool Rule::hasAnyMove(const Board& board,bool redTurn,sf::Vector2i pos)
     return false;
 }
 
-std::vector<sf::Vector2i>Rule::generateMoves(const Board& board,bool redTurn,bool jumpOnly)
+std::vector<sf::Vector2i>Rule::generateMoves(const Board& board, PlayerSide side,bool jumpOnly)
 {
     std::vector<sf::Vector2i> moves;
 
-    sf::Vector2i pos = redTurn ? board.redPos : board.bluePos;
+    sf::Vector2i pos = board.getMainPos(side);
+
 
     for (int dx = -1; dx <= 1; dx++)
     {
@@ -126,7 +131,7 @@ std::vector<sf::Vector2i>Rule::generateMoves(const Board& board,bool redTurn,boo
             {
                 if (jumpOnly)
                 {
-                    if (canJump(board, redTurn, pos.x, pos.y, nx, ny))
+                    if (canJump(board, side, pos.x, pos.y, nx, ny))
                         moves.push_back({ nx, ny });
                 }
                 else
@@ -134,7 +139,7 @@ std::vector<sf::Vector2i>Rule::generateMoves(const Board& board,bool redTurn,boo
                     if (isQueenMove(board, pos.x, pos.y, nx, ny))
                         moves.push_back({ nx, ny });
 
-                    if (canJump(board, redTurn, pos.x, pos.y, nx, ny))
+                    if (canJump(board, side, pos.x, pos.y, nx, ny))
                         moves.push_back({ nx, ny });
                 }
 
