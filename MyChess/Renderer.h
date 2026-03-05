@@ -3,19 +3,32 @@
 #include<vector>
 #include"Board.h"
 
+struct RenderState
+{
+    const Board* board;
+
+    bool redTurn;
+    bool gameOver;
+    Piece winner;
+
+    bool selected;
+    const std::vector<sf::Vector2i>* highlights;
+
+    int redHP;
+    int blueHP;
+
+    const sf::Font* font;
+};
+
+
+
 class Renderer
 {
 
 
 public:
-    static void draw(sf::RenderWindow& window,
-        const Board& board,
-        bool redTurn,
-        bool gameOver,
-        Piece winner,
-        const std::vector<sf::Vector2i>& highlights,
-        const bool& selected,
-        const sf::Font& font);
+    static void draw(sf::RenderWindow& window,const RenderState&state);
+
 
 };
 

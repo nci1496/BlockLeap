@@ -18,6 +18,8 @@ public:
 
     int boardSize;        // ”√ªß—°‘Ò
 
+    const int topOffset = 40;
+
     std::vector<std::vector<Piece>> grid;
 
     sf::Vector2i redPos;

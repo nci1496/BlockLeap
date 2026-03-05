@@ -1,25 +1,40 @@
 #include "Renderer.h"
 
-void Renderer::draw(sf::RenderWindow& window, const Board& board, bool redTurn, bool gameOver, Piece winner, const std::vector<sf::Vector2i>& highlights,const bool &selected,const sf::Font&font)
+void Renderer::draw(sf::RenderWindow& window,const RenderState& state)
 {
 
 
-    if (!gameOver)
-        window.setTitle(redTurn ? "Red Turn" : "Blue Turn");
+    if (!state.gameOver)
+        window.setTitle(state.redTurn ? "Red Turn" : "Blue Turn");
     else
         window.setTitle("Game Over");
 
     window.clear();
 
+    sf::Text redHpText;
+    redHpText.setFont(*state.font);   // 注意解引用
+    redHpText.setCharacterSize(24);
+    redHpText.setFillColor(sf::Color::Red);
+    redHpText.setString("Red HP: " + std::to_string(state.redHP));
+    redHpText.setPosition(10.f, 5.f);
+    window.draw(redHpText);
+
+    sf::Text blueHpText;
+    blueHpText.setFont(*state.font);
+    blueHpText.setCharacterSize(24);
+    blueHpText.setFillColor(sf::Color::Blue);
+    blueHpText.setString("Blue HP: " + std::to_string(state.blueHP));
+    blueHpText.setPosition(300.f, 5.f);  // 根据窗口宽度调整
+    window.draw(blueHpText);
 
 
-    if (gameOver)//这样处理，确保游戏结束后，不屏闪,（但还是状态转化更好）
+    if (state.gameOver)//这样处理，确保游戏结束后，不屏闪,（但还是状态转化更好）
     {
         sf::Text text;
-        text.setFont(font);
+        text.setFont(*state.font);
         text.setCharacterSize(40);
         text.setFillColor(sf::Color::Yellow);
-        text.setString(winner == RED ? "RED WINS" : "BLUE WINS");
+        text.setString(state.winner == RED ? "RED WINS" : "BLUE WINS");
         text.setPosition(150, 300);
 
         window.draw(text);
@@ -28,12 +43,12 @@ void Renderer::draw(sf::RenderWindow& window, const Board& board, bool redTurn, 
     }
     else {
 
-        for (int i = 0; i < board.SIZE; i++)
+        for (int i = 0; i < state.board->SIZE; i++)
         {
-            for (int j = 0; j < board.SIZE; j++)
+            for (int j = 0; j < state.board->SIZE; j++)
             {
-                sf::RectangleShape cell(sf::Vector2f(board.CELL, board.CELL));
-                cell.setPosition(j * board.CELL, i * board.CELL);
+                sf::RectangleShape cell(sf::Vector2f(state.board->CELL, state.board->CELL));
+                cell.setPosition(j * state.board->CELL, i * state.board->CELL+ state.board->topOffset);
 
                 if ((i + j) % 2 == 0)
                     cell.setFillColor(sf::Color(180, 180, 180));
@@ -47,37 +62,37 @@ void Renderer::draw(sf::RenderWindow& window, const Board& board, bool redTurn, 
 
 
                 // 画高亮
-                for (auto& h : highlights)
+                for (auto& h : *state.highlights)
                 {
-                    sf::CircleShape mark(board.CELL / 6);
+                    sf::CircleShape mark(state.board->CELL / 6);
                     mark.setFillColor(sf::Color::Green);
                     mark.setPosition(
-                        h.y * board.CELL + board.CELL / 2 - board.CELL / 12,
-                        h.x * board.CELL + board.CELL / 2 - board.CELL / 12
+                        h.y * state.board->CELL + state.board->CELL / 2 - state.board->CELL / 12,
+                        h.x * state.board->CELL + state.board->CELL / 2 - state.board->CELL / 12+state.board->topOffset
                     );
                     window.draw(mark);
                 }
 
-                if (board.grid[i][j] != EMPTY)
+                if (state.board->grid[i][j] != EMPTY)
                 {
-                    sf::CircleShape piece(board.CELL / 2 - 10);
-                    piece.setPosition(j * board.CELL + 10, i * board.CELL + 10);
+                    sf::CircleShape piece(state.board->CELL / 2 - 10);
+                    piece.setPosition(j * state.board->CELL + 10, i * state.board->CELL + 10+state.board->topOffset);
 
-                    if (board.grid[i][j] == RED)
+                    if (state.board->grid[i][j] == RED)
                         piece.setFillColor(sf::Color::Red);
-                    else if (board.grid[i][j] == BLUE)
+                    else if (state.board->grid[i][j] == BLUE)
                         piece.setFillColor(sf::Color::Blue);
-                    else if (board.grid[i][j] == RED_TRACE)
+                    else if (state.board->grid[i][j] == RED_TRACE)
                         piece.setFillColor(sf::Color(255, 150, 150));
-                    else if (board.grid[i][j] == BLUE_TRACE)
+                    else if (state.board->grid[i][j] == BLUE_TRACE)
                         piece.setFillColor(sf::Color(150, 150, 255));
 
                     window.draw(piece);
                     //画选中边框
-                    if (selected && ((redTurn && board.grid[i][j] == RED) || (!redTurn && board.grid[i][j] == BLUE)))
+                    if (state.selected && ((state.redTurn && state.board->grid[i][j] == RED) || (!state.redTurn && state.board->grid[i][j] == BLUE)))
                     {
-                        sf::CircleShape outline(board.CELL / 2 - 4);
-                        outline.setPosition(j * board.CELL + 4, i * board.CELL + 4);
+                        sf::CircleShape outline(state.board->CELL / 2 - 4);
+                        outline.setPosition(j * state.board->CELL + 4, i * state.board->CELL + 4+state.board->topOffset);
                         outline.setFillColor(sf::Color::Transparent);
                         outline.setOutlineThickness(4);
                         outline.setOutlineColor(sf::Color::White);
@@ -93,7 +108,4 @@ void Renderer::draw(sf::RenderWindow& window, const Board& board, bool redTurn, 
     }
 
     window.display();
-
-
-
 }

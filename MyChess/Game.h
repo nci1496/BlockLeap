@@ -3,6 +3,7 @@
 #include <vector>
 
 #include"Board.h"
+#include"Renderer.h"
 
 enum GameState
 {
@@ -25,10 +26,14 @@ private:
 private:
 
     sf::RenderWindow window;
+    //½ÇÉ«×´Ì¬
+    int redHP;
+    int blueHP;
     //Á÷³Ì
     bool redTurn;
     void update();
     void render();
+    Renderer renderer;
     //ÌøÔ¾
     bool jumpMode;
     void performJump(sf::Vector2i& pos, int x2, int y2);

@@ -4,7 +4,7 @@
 #include <iostream>
 using namespace std;
 
-Game::Game() : window(sf::VideoMode(board.SIZE* board.CELL, board.SIZE* board.CELL), "Chess Game")
+Game::Game() : window(sf::VideoMode(board.SIZE* board.CELL, board.SIZE* board.CELL+board.topOffset), "Chess Game")
 {
     if (!font.loadFromFile("assets/arial.ttf"))
     {
@@ -15,7 +15,8 @@ Game::Game() : window(sf::VideoMode(board.SIZE* board.CELL, board.SIZE* board.CE
     selected = false;
     jumpMode = false;
     gameOver = false;
-
+    redHP = 5;
+    blueHP = 5;
 }
 
 
@@ -164,7 +165,18 @@ void Game::update()
 
 void Game::render()
 {
-    Renderer::draw(window, board, redTurn, gameOver, winner, highlights,selected,font);
+    RenderState state;
+    state.board = &board;
+    state.redTurn = redTurn;
+    state.gameOver = gameOver;
+    state.winner = winner;
+    state.selected = selected;
+    state.highlights = &highlights;
+    state.redHP = redHP;
+    state.blueHP = blueHP;
+    state.font = &font;
+
+    renderer.draw(window, state);
 
 }
 
@@ -181,8 +193,17 @@ void Game::run()
             if (!gameOver &&
                 event.type == sf::Event::MouseButtonPressed)
             {
-                int x = event.mouseButton.y / board.CELL;
-                int y = event.mouseButton.x / board.CELL;
+                int mouseX = event.mouseButton.x;
+                int mouseY = event.mouseButton.y;
+                if (mouseY < board.topOffset)
+                {
+                    continue;
+                }
+
+                int x = (mouseY-board.topOffset) / board.CELL;
+                int y = mouseX / board.CELL;
+
+
                 handleClick(x, y);
             }
         }
