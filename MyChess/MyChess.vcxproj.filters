@@ -33,6 +33,12 @@
     <ClCompile Include="Player.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="Heart.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderState.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Game.h">
@@ -51,6 +57,12 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="Types.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Heart.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderState.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

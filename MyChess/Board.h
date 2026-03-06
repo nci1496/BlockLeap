@@ -1,5 +1,4 @@
 #pragma once
-#include <vector>
 #include<SFML/System.hpp>
 #include"Types.h"
 
@@ -19,7 +18,7 @@ public:
 
     int boardSize;        // ”√ªß—°‘Ò
 
-    const int topOffset = 40;
+    const int topOffset = 100;
 
     std::vector<std::vector<Piece>> grid;
 

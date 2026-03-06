@@ -1,4 +1,5 @@
 #include "Renderer.h"
+#include <iostream>
 
 void Renderer::draw(sf::RenderWindow& window,const RenderState& state)
 {
@@ -11,8 +12,12 @@ void Renderer::draw(sf::RenderWindow& window,const RenderState& state)
 
     window.clear();
 
-    if (state.gameOver)//这样处理，确保游戏结束后，不屏闪,（但还是状态转化更好）
+    drawHearts(window, state.redHearts);
+    drawHearts(window, state.blueHearts);
+
+    if (state.gameOver)
     {
+        window.clear();
         sf::Text text;
         text.setFont(*state.font);
         text.setCharacterSize(40);
@@ -103,4 +108,43 @@ void Renderer::draw(sf::RenderWindow& window,const RenderState& state)
     }
 
     window.display();
+}
+
+void Renderer::drawHearts(sf::RenderWindow& window,const std::vector<RenderHeart>& hearts)
+{
+    for (const auto& heart : hearts)
+    {
+        sf::RectangleShape rect({ 20, 20 });
+        rect.setPosition(heart.pos.x,heart.pos.y);
+
+        switch (heart.type)
+        {
+        case HeartType::NORMAL:
+            rect.setFillColor(sf::Color(150, 150, 150));
+            break;
+
+        case HeartType::TOUGH_HEART:
+            rect.setFillColor(sf::Color::Green);
+            break;
+        }
+
+        if (heart.consumed)
+        {
+            rect.setFillColor(sf::Color(80, 80, 80));
+        }
+
+        if (heart.active)
+        {
+            rect.setOutlineColor(sf::Color::Yellow);
+            rect.setOutlineThickness(2.f);
+        }
+
+        window.draw(rect);
+    }
+    //sf::CircleShape test(20);
+    //test.setFillColor(sf::Color::Yellow);
+    //test.setPosition(400, 50);
+
+    //window.draw(test);
+    //std::cout << "draw hearts: " << hearts.size() << std::endl;
 }

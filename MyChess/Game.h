@@ -1,11 +1,11 @@
 #pragma once
 #include <SFML/Graphics.hpp>
-#include <vector>
-
 #include"Board.h"
 #include"Renderer.h"
 #include"Player.h"
 #include"Types.h"
+#include"Heart.h"
+#include"RenderState.h"
 
 enum GameState
 {
@@ -41,6 +41,7 @@ private:
     //bool redTurn;
     void update();
     void render();
+    RenderState buildRenderState() const;
     Renderer renderer;
     //ÌøÔ¾
     bool jumpMode;

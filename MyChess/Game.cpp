@@ -69,7 +69,7 @@ void Game::performJump(PlayerSide side,int x2, int y2)
             {
                 //原本用的if(board.grid[cx][cy] == oppMain)
                 //如果要吃的棋，是对面的主将，对面扣两滴
-                opponentPlayer->damage(2);
+                opponentPlayer->takeDamage(2);
 
             }
             if (board.isTraceOfSide(board.grid[cx][cy],oppSide)) {
@@ -101,6 +101,25 @@ void Game::handleClick(int x, int y)
     PlayerSide curSide=currentPlayer->getSide();//简化
     const sf::Vector2i& curPos = board.getMainPos(curSide);
     
+
+    //硬编码的，后面得想办法调整
+    int heartStartX = (curSide==RED_SIDE)?10:300;
+    int heartStartY = 50;
+
+    // 检查特殊心点击
+    for (int i = 0; i < currentPlayer->getHeartCount(); i++) {
+        sf::IntRect bounds(
+            heartStartX + i * 25,
+            heartStartY,
+            20, 20
+        );
+
+        if (bounds.contains(x, y)) {
+            //currentPlayer->activateHeart(i);
+            currentPlayer->switchActivateHeart(i);
+            return;
+        }
+    }
 
     Piece curPiece = board.getMainPiece(curSide);
     
@@ -193,7 +212,7 @@ void Game::update()
     if (!Rule::hasAnyMove(board,currentPlayer->getSide(), pos))
     {
         //窒息
-        currentPlayer->damage(1);
+        currentPlayer->takeDamage(1);
         switchTurn();
     }
     if (redPlayer.getHP() == 0 || bluePlayer.getHP() == 0)
@@ -207,19 +226,56 @@ void Game::update()
 
 void Game::render()
 {
-    RenderState state;
-    state.board = &board;
-    state.redTurn = (currentPlayer->getSide()==RED_SIDE);
-    state.gameOver = gameOver;
-    state.winner = winner;
-    state.selected = selected;
-    state.highlights = &highlights;
-    state.redHP = redPlayer.getHP();
-    state.blueHP = bluePlayer.getHP();
-    state.font = &font;
-
+    RenderState state = buildRenderState();
     renderer.draw(window, state);
 
+}
+
+RenderState Game::buildRenderState() const
+{
+    RenderState state;
+
+    state.redHP = redPlayer.getHP();
+    state.blueHP = bluePlayer.getHP();
+
+    state.font = &font;
+    state.board = &board;
+    state.redTurn = (currentPlayer->getSide() == RED_SIDE);
+    state.selected = selected;
+    state.highlights = &highlights;
+
+    // 红方心
+    for (int i = 0; i < redPlayer.getHeartCount(); i++)
+    {
+        const IHeart* heart = redPlayer.getHeart(i);
+
+        RenderHeart rh;
+        rh.type = heart->getType();
+        rh.active = heart->isActive();
+        rh.consumed = heart->isConsumed();
+        rh.pos = sf::Vector2i(10 + i * 25, 50);
+
+        state.redHearts.push_back(rh);
+    }
+
+    // 蓝方心
+    for (int i = 0; i < bluePlayer.getHeartCount(); i++)
+    {
+        const IHeart* heart = bluePlayer.getHeart(i);
+        if (!heart)continue;
+        RenderHeart rh;
+        rh.type = heart->getType();
+        rh.active = heart->isActive();
+        rh.consumed = heart->isConsumed();
+        rh.pos = sf::Vector2i(300 + i * 25, 50);
+
+        state.blueHearts.push_back(rh);
+    }
+
+    state.gameOver = gameOver;
+    state.winner = winner;
+
+    return state;
 }
 
 void Game::run()

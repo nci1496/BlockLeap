@@ -1,29 +1,60 @@
 #include "Player.h"
+#include<iostream>
 
 Player::Player(PlayerSide s)
-    : side(s), hp(5)
+    : side(s), HP(5)
 {
 
-}
-
-void Player::damage(int amount)
-{
-    hp -= amount;
-    if (hp < 0)
-    {
-        hp = 0;
-    }
 }
 
 void Player::heal(int amount)
 {
-    hp += amount;
-    if (hp > maxHP) { hp = maxHP; }
+    HP += amount;
+    if (HP > maxHP) { HP = maxHP; }
 }
 
 int Player::getHP() const
 {
-    return hp;
+    return HP;
+}
+
+int Player::getMaxHP() const
+{
+    return maxHP;
+}
+
+int Player::getHeartCount() const
+{
+    return hearts.size();
+}
+
+const IHeart* Player::getHeart(int index) const
+{
+    if (index < 0 || index >= hearts.size())
+        return nullptr;
+
+    return hearts[index].get();
+}
+
+void Player::addHeart(std::unique_ptr<IHeart> heart)
+{
+     hearts.push_back(std::move(heart)); 
+}
+
+void Player::activateHeart(int index)
+{
+    if (index >= 0 && index < hearts.size())
+    {
+        hearts[index]->onActivate();
+    }
+}
+
+void Player::switchActivateHeart(int index)
+{
+    if (index >= 0 && index < hearts.size())
+    {
+        hearts[index]->switchActivate();
+    }
 }
 
 PlayerSide Player::getSide() const
@@ -33,7 +64,7 @@ PlayerSide Player::getSide() const
 
 bool Player::isDead() const
 {
-    return hp <= 0;
+    return HP <= 0;
 }
 
 JumpCount Player::getJumpCount()
@@ -50,22 +81,57 @@ void Player::setJumpCount(int selfCount, int totalCount)
 
 void Player::applyJumpResult()
 {
-    damage(jumpCount.eatenSelf);
+    takeDamage(jumpCount.eatenSelf);
     switch (jumpCount.eatenTotal)
     {
         case 1:
-        {damage(1);break;}
+        {takeDamage(1);break;}
         case 2:
         {heal(1);break;}
         case 3:
-        {heal(3);break;}
-        
+        {addHeart(std::make_unique<ToughHeart>()); std::cout << "heart added, now: " << hearts.size() << std::endl; break;}
+        default:
+        {
+            if (jumpCount.eatenTotal >= 4)
+            {
+                heal(maxHP);
+            }
+        }
     }
-    if (jumpCount.eatenTotal >= 4)
-    {
-        heal(maxHP);
-    }
+    
 
     setJumpCount(0,0);
 }
 
+void Player::takeDamage(int damage) {
+    if (damage <= 0) return;
+
+    // 规则1: 优先消耗普通心(HP)
+    if (damage == 1 && HP > 0) {
+        // 小伤害优先用HP吸收
+        HP--;
+        return;
+    }
+
+    // 规则2: 大伤害或HP不足时
+    if (damage > 1 || HP <= 0) {
+        // 2.1 尝试用坚毅之心吸收
+        for (auto& heart : hearts) {
+            if (heart->getType() == HeartType::TOUGH_HEART &&
+                heart->isActive() &&
+                !heart->isConsumed())
+            {
+                if (heart->onDamage(damage)) {
+                    return; // 坚毅之心吸收成功
+                }
+            }
+        }
+
+        // 2.2 没有坚毅之心可用，扣减HP
+        HP -= damage;
+        if (HP < 0)
+        {
+            HP = 0;
+        };
+    }
+}
