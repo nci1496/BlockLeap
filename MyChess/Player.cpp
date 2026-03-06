@@ -89,12 +89,15 @@ void Player::applyJumpResult()
         case 2:
         {heal(1);break;}
         case 3:
-        {addHeart(std::make_unique<ToughHeart>()); std::cout << "heart added, now: " << hearts.size() << std::endl; break;}
+        {addHeart(std::make_unique<ToughHeart>()); break;}
         default:
         {
             if (jumpCount.eatenTotal >= 4)
             {
                 heal(maxHP);
+
+                addHeart(std::make_unique<ToughHeart>()); break;
+
             }
         }
     }

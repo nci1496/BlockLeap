@@ -18,7 +18,7 @@ class NormalHeart : public IHeart {
     bool active = false;
 public:
     void onActivate() override { active = true; } // 点击只是标记
-    void switchActivate() override { active=!active; }
+    void switchActivate() override { active = !active; }
     bool onDamage(int& damage) override { return false; } // 普通心无防御
     void render(sf::RenderWindow& window, float x, float y) const override {
         sf::RectangleShape rect({ 20.f,20.f });
