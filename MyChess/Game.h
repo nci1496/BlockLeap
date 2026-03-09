@@ -52,6 +52,8 @@ private:
     PlayerSide lastWinner;
     //µã»÷
     void handleClick(int x, int y);
+    void handleHeartClick(int x, int y);
+
     bool selected;
     std::vector<sf::Vector2i> highlights;
     void updateHighlights();

@@ -57,6 +57,34 @@ void Player::switchActivateHeart(int index)
     }
 }
 
+bool Player::hasActiveHeart(HeartType type) const
+{
+    for (const auto& heart : hearts)
+    {
+        if (heart->getType() == type &&
+            heart->isActive() &&
+            !heart->isConsumed())
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+IHeart* Player::getActiveHeart(HeartType type)
+{
+    for (auto& heart : hearts)
+    {
+        if (heart->getType() == type &&
+            heart->isActive() &&
+            !heart->isConsumed())
+        {
+            return heart.get();
+        }
+    }
+    return nullptr;
+}
+
 PlayerSide Player::getSide() const
 {
     return side;
@@ -87,16 +115,28 @@ void Player::applyJumpResult()
         case 1:
         {takeDamage(1);break;}
         case 2:
-        {heal(1);break;}
+        {heal(1);
+        //addHeart(std::make_unique<DashHeart>());//only test
+        //std::cout << "add hearts";
+        break;}
         case 3:
         {addHeart(std::make_unique<ToughHeart>()); break;}
+        //case 4: {
+
+        //    addHeart(std::make_unique<DashHeart>());
+        //    break;
+        //
+        //}
+
         default:
         {
             if (jumpCount.eatenTotal >= 4)
             {
                 heal(maxHP);
 
-                addHeart(std::make_unique<ToughHeart>()); break;
+                addHeart(std::make_unique<ToughHeart>()); 
+                //addHeart(std::make_unique<DashHeart>());
+                break;
 
             }
         }
@@ -119,15 +159,15 @@ void Player::takeDamage(int damage) {
     // 规则2: 大伤害或HP不足时
     if (damage > 1 || HP <= 0) {
         // 2.1 尝试用坚毅之心吸收
-        for (auto& heart : hearts) {
-            if (heart->getType() == HeartType::TOUGH_HEART &&
-                heart->isActive() &&
-                !heart->isConsumed())
-            {
-                if (heart->onDamage(damage)) {
-                    return; // 坚毅之心吸收成功
+
+        if (hasActiveHeart(HeartType::TOUGH_HEART))
+        {
+            IHeart* heart = getActiveHeart(HeartType::TOUGH_HEART);
+            
+                if (heart->onDamage(damage))
+                {
+                    return;// 坚毅之心吸收成功
                 }
-            }
         }
 
         // 2.2 没有坚毅之心可用，扣减HP

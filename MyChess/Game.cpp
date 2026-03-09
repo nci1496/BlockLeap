@@ -2,6 +2,8 @@
 #include"Rule.h"
 #include"Renderer.h"
 #include <iostream>
+#include"Types.h"
+
 using namespace std;
 
 Game::Game() : window(sf::VideoMode(board.SIZE* board.CELL, board.SIZE* board.CELL+board.topOffset), "Chess Game")
@@ -35,6 +37,16 @@ void Game::updateHighlights()
 
     highlights = Rule::generateMoves(board, currentPlayer->getSide(), jumpMode);
 }
+
+//for (auto& heart : hearts) {
+//    if (heart->getType() == HeartType::DASH_HEART &&
+//        heart->isActive() &&
+//        !heart->isConsumed())
+//    {
+//        
+//    }
+//}
+
 
 void Game::performJump(PlayerSide side,int x2, int y2)
 {
@@ -101,28 +113,8 @@ void Game::handleClick(int x, int y)
     PlayerSide curSide=currentPlayer->getSide();//简化
     const sf::Vector2i& curPos = board.getMainPos(curSide);
     
-
-    //硬编码的，后面得想办法调整
-    int heartStartX = (curSide==RED_SIDE)?10:300;
-    int heartStartY = 50;
-
-    // 检查特殊心点击
-    for (int i = 0; i < currentPlayer->getHeartCount(); i++) {
-        sf::IntRect bounds(
-            heartStartX + i * 25,
-            heartStartY,
-            20, 20
-        );
-
-        if (bounds.contains(x, y)) {
-            //currentPlayer->activateHeart(i);
-            currentPlayer->switchActivateHeart(i);
-            return;
-        }
-    }
-
     Piece curPiece = board.getMainPiece(curSide);
-    
+
     if (!selected)
     {
         if (x == curPos.x && y == curPos.y)
@@ -137,6 +129,13 @@ void Game::handleClick(int x, int y)
     }
 
     // 连跳模式
+
+    if (currentPlayer->hasActiveHeart(HeartType::DASH_HEART)) {
+    
+    
+    
+    }
+
     if (jumpMode)
     {
         if (Rule::canJump(board, curSide,curPos.x, curPos.y, x, y))
@@ -202,6 +201,30 @@ void Game::handleClick(int x, int y)
 
     // 非法点击取消选择
     selected = false;
+}
+
+void Game::handleHeartClick(int x, int y)
+{
+    PlayerSide curSide = currentPlayer->getSide();//简化
+    const sf::Vector2i& curPos = board.getMainPos(curSide);
+
+    int heartStartX = (curSide == RED_SIDE) ? board.HeartStarLeft_x : board.HeartStarRight_x;
+    int heartStartY = board.HeartStarY;
+
+    // 检查特殊心点击
+    for (int i = 0; i < currentPlayer->getHeartCount(); i++) {
+        sf::IntRect bounds(
+            heartStartX + i * 25 ,
+            heartStartY,
+            20, 20
+        );
+
+        if (bounds.contains(x, y)) {
+            currentPlayer->switchActivateHeart(i);
+            return;
+        }
+    }
+
 }
 
 void Game::update()
@@ -295,7 +318,8 @@ void Game::run()
                 int mouseY = event.mouseButton.y;
                 if (mouseY < board.topOffset)
                 {
-                    continue;
+                    handleHeartClick(mouseX,mouseY);
+    
                 }
 
                 int x = (mouseY-board.topOffset) / board.CELL;

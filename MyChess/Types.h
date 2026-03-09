@@ -18,5 +18,6 @@ inline PlayerSide getOpponent(PlayerSide side)
 enum class HeartType {
     NORMAL,
     TOUGH_HEART,
+    DASH_HEART,
 
 };

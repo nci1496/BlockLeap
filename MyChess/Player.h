@@ -29,6 +29,9 @@ public:
     void activateHeart(int index);
     void switchActivateHeart(int index);
     
+    bool hasActiveHeart(HeartType type) const;
+    IHeart* getActiveHeart(HeartType type);
+
 public:
 
     PlayerSide getSide() const;

@@ -20,6 +20,10 @@ public:
 
     const int topOffset = 100;
 
+    const int HeartStarLeft_x=10;//左边的用户心的位置朝x轴正方向（水平）移动10
+    const int HeartStarRight_x = 300;//右边的用户心的位置朝x轴正方向（水平）移动300
+    const int HeartStarY = 50;//心的位置y正方向移动...
+
     std::vector<std::vector<Piece>> grid;
 
     sf::Vector2i redPos;

@@ -119,14 +119,19 @@ void Renderer::drawHearts(sf::RenderWindow& window,const std::vector<RenderHeart
 
         switch (heart.type)
         {
-        case HeartType::NORMAL:
+        case HeartType::NORMAL: {
             rect.setFillColor(sf::Color(150, 150, 150));
             break;
-
-        case HeartType::TOUGH_HEART:
-            rect.setFillColor(sf::Color::Green);
+        }
+        case HeartType::TOUGH_HEART: {
+            rect.setFillColor(sf::Color(70, 130, 180));
             break;
         }
+        case HeartType::DASH_HEART: {
+            rect.setFillColor(sf::Color(200, 200, 0));
+            break;
+        }
+   }
 
         if (heart.consumed)
         {
@@ -141,10 +146,5 @@ void Renderer::drawHearts(sf::RenderWindow& window,const std::vector<RenderHeart
 
         window.draw(rect);
     }
-    //sf::CircleShape test(20);
-    //test.setFillColor(sf::Color::Yellow);
-    //test.setPosition(400, 50);
 
-    //window.draw(test);
-    //std::cout << "draw hearts: " << hearts.size() << std::endl;
 }
